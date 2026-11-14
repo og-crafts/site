@@ -1,0 +1,23 @@
+{
+  "_note": "The crafts shown on ogcrafts.cloud, in display order. status: stable | beta | soon. platforms: any of Windows, macOS, Linux, Web, Android, CLI. A craft with a detail page needs a matching section in DETAILS in build.py.",
+  "apps": [
+    {
+      "id": "dispatch",
+      "name": "Dispatch",
+      "kind": "API client",
+      "tagline": "A local-first API client.",
+      "desc": "Build, send, test and document APIs on your computer or in the browser. Collections, scripts, test runs and load tests, with no account and nothing stored on a server.",
+      "status": "beta",
+      "version": "0.5.0",
+      "platforms": ["Windows", "macOS", "Linux", "Web", "CLI"],
+      "site": "https://dispatch.ogcrafts.cloud/",
+      "web": "https://dispatch.ogcrafts.cloud/app/",
+      "download": "https://dispatch.ogcrafts.cloud/download/",
+      "privacy": "https://dispatch.ogcrafts.cloud/privacy/",
+      "source": "https://github.com/og-crafts/dispatch",
+      "license": "MIT",
+      "shot": "request",
+      "shot_dark": "request-dark"
+    }
+  ]
+}
