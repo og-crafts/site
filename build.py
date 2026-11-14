@@ -71,7 +71,7 @@ def soon_card():
 
 NAV = [("/apps/", "Crafts"), ("/about/", "About"), (ORG, "GitHub"), (f"mailto:{EMAIL}", "Contact")]
 
-ANALYTICS = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{CF_TOKEN}"}}\'></script>\n' if CF_TOKEN else "")
+ANALYTICS = (f'<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{CF_TOKEN}"}}\'></script>\n' if CF_TOKEN else "")
 
 def shell(path, title, desc, body, noindex=False):
     navs = "".join(f'<a href="{h}"{" aria-current=\"page\"" if h == path else ""}>{l}</a>' for h, l in NAV)
