@@ -16,6 +16,10 @@ YEAR = datetime.date.today().year
 UPDATED = "14 November 2026"  # date on the privacy page; change it when that text changes
 e = html.escape
 
+# Cookieless analytics for THIS site only (not the apps). Set the Cloudflare Web Analytics token in analytics.json to turn it on.
+_an = ROOT / "analytics.json"
+CF_TOKEN = json.loads(_an.read_text()).get("cloudflare_token", "").strip() if _an.exists() else ""
+
 APPS = json.loads((ROOT / "apps.json").read_text())["apps"]
 STATUS = {"stable": "Stable", "beta": "Public beta", "soon": "Coming soon"}
 
@@ -67,6 +71,8 @@ def soon_card():
 
 NAV = [("/apps/", "Crafts"), ("/about/", "About"), (ORG, "GitHub"), (f"mailto:{EMAIL}", "Contact")]
 
+ANALYTICS = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{CF_TOKEN}"}}\'></script>\n' if CF_TOKEN else "")
+
 def shell(path, title, desc, body, noindex=False):
     navs = "".join(f'<a href="{h}"{" aria-current=\"page\"" if h == path else ""}>{l}</a>' for h, l in NAV)
     crafts = "".join(f'<li><a href="/apps/{a["id"]}/">{e(a["name"])}</a></li>' for a in APPS)
@@ -81,6 +87,7 @@ def shell(path, title, desc, body, noindex=False):
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/assets/fonts/nunito-800.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/site.css">
+<meta property="og:image" content="{BASE}/assets/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:type" content="website"><meta property="og:url" content="{BASE}{path}">
 </head><body>
 <a class="skip" href="#main">Skip to content</a>
@@ -92,7 +99,7 @@ def shell(path, title, desc, body, noindex=False):
 <div><h2>Company</h2><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="mailto:{EMAIL}">{EMAIL}</a></li></ul></div>
 <div><h2>Elsewhere</h2><ul><li><a href="{ORG}">GitHub</a></li></ul></div></div>
 <small>&copy; {YEAR} OGCrafts. Open source where noted.</small></div></footer>
-</body></html>"""
+{ANALYTICS}</body></html>"""
 
 # ---------- pages ----------
 def lineup_section(heading="The lineup", eyebrow="02 / The lineup"):
@@ -150,16 +157,18 @@ def about():
 <section class="hero"><div class="wrap"><p class="eyebrow">About</p><h1>An independent workshop.</h1></div></section>
 <section style="padding-top:0"><div class="wrap prose">
 <p class="lead">OGCrafts makes focused software tools. We build them to run on your own device, to keep what you make in files you control, and to be honest about what they do.</p>
+<h2>Who is behind it</h2><p>OGCrafts is run by Omprakash Gautam, a software developer who likes small, dependable tools. Each craft is designed, built and supported by one person, which is why they stay focused and why we answer email ourselves.</p>
 <h2>What we make</h2><p>Each craft is a small, complete tool, such as <a href="/apps/dispatch/">Dispatch</a>, a local-first API client. We publish the source where we can, label every release honestly and keep the apps free of accounts and tracking.</p>
 <h2>Get in touch</h2><p>Questions, bug reports and ideas are welcome at <a href="mailto:{EMAIL}">{EMAIL}</a>. For code issues, open one in the project&rsquo;s repository on <a href="{ORG}">GitHub</a>.</p>
 </div></section>"""
 
 def privacy():
+    analytics_note = ('<h2>Analytics</h2><p>This website uses <a href="https://www.cloudflare.com/web-analytics/">Cloudflare Web Analytics</a>, which counts visits without cookies and without tracking you across sites or building a profile of you. It records aggregate page views, referrers, countries and browser types. The craft apps and their own websites are not measured by it.</p>' if CF_TOKEN else "")
     return f"""
 <section class="hero"><div class="wrap"><p class="eyebrow">Privacy</p><h1>Privacy policy for this website.</h1><p class="muted">Updated {UPDATED}</p></div></section>
 <section style="padding-top:0"><div class="wrap prose">
 <p>This page covers ogcrafts.cloud only. Each craft has its own privacy policy, linked from its page, because what an app does with data is specific to that app.</p>
-<h2>What this website does</h2><p>The site is a set of static files hosted on GitHub Pages. When you open it, GitHub&rsquo;s servers receive the request for the files and, like any web host, may log your IP address and browser details under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub&rsquo;s privacy statement</a>. We do not receive those logs for individual visitors. We do not set cookies, run analytics, or load fonts, scripts or images from other sites.</p>
+<h2>What this website does</h2><p>The site is a set of static files hosted on GitHub Pages. When you open it, GitHub&rsquo;s servers receive the request for the files and, like any web host, may log your IP address and browser details under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub&rsquo;s privacy statement</a>. We do not receive those logs for individual visitors. We do not set cookies and we do not load fonts, scripts or images from other sites.</p>{analytics_note}
 <h2>Email</h2><p>If you write to <a href="mailto:{EMAIL}">{EMAIL}</a>, we receive your address and your message, and we use them only to reply. Mail to this address is forwarded by Cloudflare Email Routing to a private inbox. We do not add you to any list.</p>
 <h2>Contact</h2><p>Questions about this policy: <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
 </div></section>"""
@@ -188,7 +197,7 @@ def main():
         out.write_text(shell(path, title, desc, body))
     (DIST / "404.html").write_text(shell("/404.html", "Page not found | OGCrafts", "Page not found.", notfound(), noindex=True))
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n")
-    (DIST / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "".join(f"<url><loc>{BASE}{p}</loc></url>\n" for p in pages) + "</urlset>\n")
+    (DIST / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "".join(f"<url><loc>{BASE}{p}</loc><lastmod>{datetime.date.today().isoformat()}</lastmod></url>\n" for p in pages) + "</urlset>\n")
     (DIST / "CNAME").write_text(f"{DOMAIN}\n"); (DIST / ".nojekyll").write_text("")
     problems = check(pages)
     for p in problems: print("PROBLEM:", p)
@@ -225,6 +234,7 @@ def check(pages):
         ids = re.findall(r'\bid="([^"]+)"', h)
         if len(ids) != len(set(ids)): problems.append(f"{rel}: duplicate ids")
         for u in re.findall(r'(?:href|src|srcset)="([^"]+)"', h):
+            if u == "https://static.cloudflareinsights.com/beacon.min.js" and CF_TOKEN: continue
             if u.startswith(("mailto:", "#")): continue
             if u.startswith("http"):
                 if re.search(r"(?:src|srcset)=\"" + re.escape(u), h) or ('rel="stylesheet"' in h and False): problems.append(f"{rel}: third-party resource {u}")
