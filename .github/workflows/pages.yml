@@ -11,16 +11,21 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - run: python3 build.py --strict
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+  # A job of its own: right after the upload, GitHub may not list the artifact yet ("Found 0 artifact(s)").
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
